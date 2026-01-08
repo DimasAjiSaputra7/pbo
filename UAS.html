@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Modern Login PBO</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  font-family:'Segoe UI',sans-serif;
+}
+
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+}
+
+/* ===== CARD ===== */
+.card{
+  width:340px;
+  background:rgba(255,255,255,0.95);
+  border-radius:18px;
+  padding:30px;
+  box-shadow:0 20px 40px rgba(0,0,0,.2);
+  text-align:center;
+  animation:fadeIn .8s ease;
+}
+
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:none}
+}
+
+h2{
+  margin-bottom:5px;
+}
+
+.subtitle{
+  color:#777;
+  margin-bottom:20px;
+  font-size:14px;
+}
+
+/* ===== INPUT ===== */
+input{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border-radius:12px;
+  border:1px solid #ddd;
+  outline:none;
+  transition:.3s;
+}
+
+input:focus{
+  border-color:#667eea;
+  box-shadow:0 0 0 3px rgba(102,126,234,.2);
+}
+
+/* ===== BUTTON ===== */
+button{
+  width:100%;
+  padding:12px;
+  margin-top:15px;
+  border:none;
+  border-radius:14px;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  transition:.3s;
+}
+
+button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 25px rgba(102,126,234,.5);
+}
+
+button:disabled{
+  background:#aaa;
+  cursor:not-allowed;
+  box-shadow:none;
+}
+
+/* ===== PROFILE ===== */
+.profile p{
+  margin:8px 0;
+  color:#555;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card" id="app"></div>
+
+<script>
+/* ===========================
+   CLASS & OBJECT (PBO)
+=========================== */
+
+class User{
+  constructor(username,password,role){
+    this.username=username;
+    this.password=password;
+    this.role=role;
+  }
+}
+
+class UserDatabase{
+  static init(){
+    if(!localStorage.getItem("users")){
+      const users=[
+        new User("admin","12345","Legendary"),
+        new User("user","user123","Member")
+      ];
+      localStorage.setItem("users",JSON.stringify(users));
+    }
+  }
+
+  static getUsers(){
+    return JSON.parse(localStorage.getItem("users"));
+  }
+}
+
+class Auth{
+  static login(username,password){
+    const users=UserDatabase.getUsers();
+    return users.find(
+      u=>u.username===username && u.password===password
+    );
+  }
+}
+
+/* ===========================
+   UI RENDER
+=========================== */
+
+const app=document.getElementById("app");
+
+function renderLogin(){
+  app.innerHTML=`
+    <h2>Welcome Back</h2>
+    <p class="subtitle">Secure Login System</p>
+    <input id="username" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
+    <button id="loginBtn">Login</button>
+  `;
+
+  document.getElementById("loginBtn").onclick=handleLogin;
+}
+
+function renderProfile(user){
+  app.innerHTML=`
+    <div class="profile">
+      <h2>${user.username}</h2>
+      <p>Role: <b>${user.role}</b></p>
+      <button onclick="logout()">Logout</button>
+    </div>
+  `;
+}
+
+/* ===========================
+   LOGIC
+=========================== */
+
+function handleLogin(){
+  const btn=document.getElementById("loginBtn");
+  const username=document.getElementById("username").value;
+  const password=document.getElementById("password").value;
+
+  btn.innerText="Checking...";
+  btn.disabled=true;
+
+  setTimeout(()=>{
+    const user=Auth.login(username,password);
+
+    if(user){
+      localStorage.setItem("loggedUser",JSON.stringify(user));
+      renderProfile(user);
+    }else{
+      alert("❌ Gagal Login");
+      btn.innerText="Login";
+      btn.disabled=false;
+    }
+  },800); // UX delay
+}
+
+function logout(){
+  localStorage.removeItem("loggedUser");
+  renderLogin();
+}
+
+/* ===========================
+   INIT
+=========================== */
+
+UserDatabase.init();
+
+const loggedUser=JSON.parse(localStorage.getItem("loggedUser"));
+loggedUser ? renderProfile(loggedUser) : renderLogin();
+
+</script>
+
+</body>
+</html>
